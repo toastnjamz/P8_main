@@ -1,4 +1,4 @@
-package tourGuide;
+package tourGuide.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +8,7 @@ import rewardCentral.RewardCentral;
 import tourGuide.service.RewardsService;
 
 @Configuration
-public class TourGuideModule {
+public class TourGuideCongifuration {
 	
 	@Bean
 	public GpsUtil getGpsUtil() {

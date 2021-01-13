@@ -9,8 +9,8 @@ import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
-import tourGuide.user.User;
-import tourGuide.user.UserReward;
+import tourGuide.domain.user.User;
+import tourGuide.domain.user.UserReward;
 
 @Service
 public class RewardsService {
