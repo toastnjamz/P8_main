@@ -19,7 +19,7 @@ public class Tracker extends Thread {
 	private final RewardsService rewardsService;
 	private boolean stop = false;
 
-	int processors = Runtime.getRuntime().availableProcessors();
+//	int processors = Runtime.getRuntime().availableProcessors();
 
 	public Tracker(TourGuideService tourGuideService, RewardsService rewardsService) {
 		this.tourGuideService = tourGuideService;
@@ -50,7 +50,7 @@ public class Tracker extends Thread {
 			stopWatch.start();
 
 			//TODO: Concurrent solution
-			ForkJoinPool forkJoinPool = new ForkJoinPool(processors);
+			ForkJoinPool forkJoinPool = new ForkJoinPool(100);
 
 //			users.forEach(u -> tourGuideService.trackUserLocation(u));
 

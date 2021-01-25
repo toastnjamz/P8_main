@@ -133,18 +133,12 @@ public class TourGuideService {
 		return nearbyAttractions;
 	}
 
-	// TODO: Switch back to using this method
-//    public UserPreferences getUserPreferences(String userName) {
-//        if(testUserRepository.getInternalUserMap().containsKey(userName)) {
-//            return testUserRepository.getInternalUserMap().get(userName).getUserPreferences();
-//        }
-//        return null;
-//    }
-
-	public UserPreferences getUserPreferences(User user) {
-		UserPreferences userPreferences = user.getUserPreferences();
-		return userPreferences;
-	}
+    public UserPreferences getUserPreferences(User user) {
+        if(testUserRepository.getInternalUserMap().containsKey(user.getUserName())) {
+            return testUserRepository.getInternalUserMap().get(user.getUserName()).getUserPreferences();
+        }
+        return null;
+    }
 
 	public void setUserPreferences(String userName, UserPreferences userPreferences) {
 		User user = getUser(userName);
