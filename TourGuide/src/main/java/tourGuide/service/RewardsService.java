@@ -40,23 +40,23 @@ public class RewardsService {
 		proximityBuffer = defaultProximityBuffer;
 	}
 
+	//Optimized with foreach
 	public void calculateRewards(User user) {
 		List<VisitedLocation> userLocations = user.getVisitedLocations();
-
 		List<Attraction> attractions;
 
 		AttractionListWrapper attractionListWrapper = restTemplate.getForObject("http://localhost:8082/attractions", AttractionListWrapper.class);
 		attractions = attractionListWrapper.getAttractionList();
 
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
-					if(nearAttraction(visitedLocation, attraction)) {
+		userLocations.forEach(visitedLocation -> {
+			attractions.forEach(attraction -> {
+				if (user.getUserRewards().stream().filter(reward -> reward.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+					if (nearAttraction(visitedLocation, attraction)) {
 						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
 					}
 				}
-			}
-		}
+			});
+		});
 	}
 
 	public int getRewardPoints(Attraction attraction, User user) {

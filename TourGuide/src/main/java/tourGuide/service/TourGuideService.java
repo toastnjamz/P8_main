@@ -15,6 +15,10 @@ import tourGuide.repository.TestUserRepository;
 import tourGuide.tracker.Tracker;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,7 +63,7 @@ public class TourGuideService {
 		}
 	}
 
-	public VisitedLocation getUserLocation(User user) {
+	public VisitedLocation getUserLocation(User user) throws ExecutionException, InterruptedException {
 		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ?
 				user.getLastVisitedLocation() :
 				trackUserLocation(user);
@@ -75,16 +79,34 @@ public class TourGuideService {
 		return allUsersLocations;
 	}
 
-	public VisitedLocation trackUserLocation(User user) {
-		VisitedLocation visitedLocation = new VisitedLocation();
+//	public VisitedLocation trackUserLocation(User user) {
+//		VisitedLocation visitedLocation = new VisitedLocation();
+//		String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
+//
+//		visitedLocation = restTemplate.getForObject(requestURI, VisitedLocation.class);
+//		user.addToVisitedLocations(visitedLocation);
+//
+////        rewardsService.calculateRewards(user);
+//		return visitedLocation;
+//	}
+
+	public VisitedLocation trackUserLocation(User user) throws ExecutionException, InterruptedException {
 		String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
+		ExecutorService executorService = Executors.newFixedThreadPool(100);
 
-		visitedLocation = restTemplate.getForObject(requestURI, VisitedLocation.class);
+		CompletableFuture<VisitedLocation> completableFuture = CompletableFuture.supplyAsync(() -> {
+			return restTemplate.getForObject(requestURI, VisitedLocation.class);
+		}, executorService)
+				.thenApplyAsync(visitedLocation -> {
+					completeTrack(user, visitedLocation);
+					return visitedLocation;
+				});
+		return completableFuture.get();
+	}
+
+	public void completeTrack(User user, VisitedLocation visitedLocation)  {
 		user.addToVisitedLocations(visitedLocation);
-
-		//TODO: maybe remove from method to untangle concurrency issue
-//        rewardsService.calculateRewards(user);
-		return visitedLocation;
+		rewardsService.calculateRewards(user);
 	}
 
 	public List<UserReward> getUserRewards(User user) {

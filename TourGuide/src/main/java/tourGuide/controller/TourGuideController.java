@@ -12,6 +12,7 @@ import tourGuide.service.TourGuideService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @Api(description="Main application methods for TourGuide")
@@ -35,7 +36,7 @@ public class TourGuideController {
      * @return location
      */
     @RequestMapping("/location")
-    public String getLocation(@RequestParam String userName) {
+    public String getLocation(@RequestParam String userName) throws ExecutionException, InterruptedException {
         VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
         return JsonStream.serialize(visitedLocation.location);
     }
@@ -76,7 +77,7 @@ public class TourGuideController {
      * @return list of nearest attractions
      */
     @RequestMapping("/nearby-attractions")
-    public String getNearbyAttractions(@RequestParam String userName) {
+    public String getNearbyAttractions(@RequestParam String userName) throws ExecutionException, InterruptedException {
         VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
         return JsonStream.serialize(tourGuideService.getClosestAttractions(visitedLocation, getUser(userName)));
     }
@@ -107,4 +108,5 @@ public class TourGuideController {
     private User getUser(String userName) {
         return tourGuideService.getUser(userName);
     }
+
 }

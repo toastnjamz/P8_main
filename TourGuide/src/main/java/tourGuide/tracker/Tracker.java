@@ -49,15 +49,30 @@ public class Tracker extends Thread {
 			logger.debug("Begin Tracker. Tracking " + users.size() + " users.");
 			stopWatch.start();
 
-			//TODO: Concurrent solution
-			ForkJoinPool forkJoinPool = new ForkJoinPool(100);
-
-//			users.forEach(u -> tourGuideService.trackUserLocation(u));
-
 			users.forEach(u -> {
-				CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
-						.thenAccept(r -> rewardsService.calculateRewards(u));
+				try {
+					tourGuideService.trackUserLocation(u);
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			});
+
+//			ExecutorService executorService = Executors.newFixedThreadPool(100);
+//
+//			users.forEach(u -> {
+//				CompletableFuture.supplyAsync(() -> tourGuideService.trackUserLocation(u), executorService)
+//						.thenAccept(visitedLocation -> {rewardsService.calculateRewards(u);});
+//			});
+
+
+//			ForkJoinPool forkJoinPool = new ForkJoinPool(100);
+//
+//			users.forEach(u -> {
+//				CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
+//						.thenAccept(r -> rewardsService.calculateRewards(u));
+//			});
 
 			stopWatch.stop();
 			logger.debug("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");

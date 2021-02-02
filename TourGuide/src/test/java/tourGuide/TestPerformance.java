@@ -14,9 +14,7 @@ import tourGuide.service.TourGuideService;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.junit.Assert.assertTrue;
 
@@ -46,13 +44,13 @@ public class TestPerformance {
 
 //	@Ignore
 	@Test
-	public void highVolumeTrackLocation() {
+	public void highVolumeTrackLocation() throws ExecutionException, InterruptedException {
 		RestTemplate restTemplate = new RestTemplate();
 		RewardsService rewardsService = new RewardsService(restTemplate);
 		TestUserRepository testUserRepository = new TestUserRepository();
 
 		// Users should be incremented up to 100,000, and test finishes within 15 minutes
-		InternalTestHelper.setInternalUserNumber(100000);
+		InternalTestHelper.setInternalUserNumber(5000);
 		TourGuideService tourGuideService = new TourGuideService(rewardsService, testUserRepository, restTemplate);
 
 		List<User> allUsers = tourGuideService.getAllUsers();
@@ -60,16 +58,25 @@ public class TestPerformance {
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 
-		ForkJoinPool forkJoinPool = new ForkJoinPool(100);
-		allUsers.forEach(u -> {
-			CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
-					.thenAccept(r -> rewardsService.calculateRewards(u));
-		});
+		for(User user : allUsers) {
+			tourGuideService.trackUserLocation(user);
+		}
 
-//		for(User user : allUsers) {
-//			tourGuideService.trackUserLocation(user);
-//		}
-		forkJoinPool.awaitQuiescence(15,TimeUnit.MINUTES);
+//		ExecutorService executorService = Executors.newFixedThreadPool(100);
+
+//		allUsers.forEach(u -> {
+//			CompletableFuture.supplyAsync(() -> tourGuideService.trackUserLocation(u), executorService)
+//					.thenAccept(visitedLocation -> {tourGuideService.completeTrack(u, visitedLocation);});
+//				});
+
+
+//		ForkJoinPool forkJoinPool = new ForkJoinPool(100);
+//		allUsers.forEach(u -> {
+//			CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
+//					.thenAccept(r -> rewardsService.calculateRewards(u));
+//		});
+//
+//		forkJoinPool.awaitQuiescence(15,TimeUnit.MINUTES);
 
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
