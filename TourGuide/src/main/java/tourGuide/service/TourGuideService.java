@@ -86,7 +86,7 @@ public class TourGuideService {
 //		visitedLocation = restTemplate.getForObject(requestURI, VisitedLocation.class);
 //		user.addToVisitedLocations(visitedLocation);
 //
-////        rewardsService.calculateRewards(user);
+////		rewardsService.calculateRewards(user);
 //		return visitedLocation;
 //	}
 

@@ -42,7 +42,7 @@ public class TestPerformance {
 
 //	int processors = Runtime.getRuntime().availableProcessors();
 
-//	@Ignore
+	@Ignore
 	@Test
 	public void highVolumeTrackLocation() throws ExecutionException, InterruptedException {
 		RestTemplate restTemplate = new RestTemplate();
@@ -58,22 +58,22 @@ public class TestPerformance {
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 
-		for(User user : allUsers) {
-			tourGuideService.trackUserLocation(user);
-		}
+//		for(User user : allUsers) {
+//			tourGuideService.trackUserLocation(user);
+//		}
 
-//		ExecutorService executorService = Executors.newFixedThreadPool(100);
+		ExecutorService executorService = Executors.newFixedThreadPool(100);
 
-//		allUsers.forEach(u -> {
-//			CompletableFuture.supplyAsync(() -> tourGuideService.trackUserLocation(u), executorService)
-//					.thenAccept(visitedLocation -> {tourGuideService.completeTrack(u, visitedLocation);});
-//				});
+		allUsers.forEach(u -> {
+			CompletableFuture.supplyAsync(() -> tourGuideService.trackUserLocation(u), executorService)
+					.thenAccept(visitedLocation -> {tourGuideService.completeTrack(u, visitedLocation);});
+				});
 
 
 //		ForkJoinPool forkJoinPool = new ForkJoinPool(100);
 //		allUsers.forEach(u -> {
 //			CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
-//					.thenAccept(r -> rewardsService.calculateRewards(u));
+//					.thenAccept(v -> rewardsService.calculateRewards(u));
 //		});
 //
 //		forkJoinPool.awaitQuiescence(15,TimeUnit.MINUTES);
@@ -85,7 +85,7 @@ public class TestPerformance {
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 
-	@Ignore
+//	@Ignore
 	@Test
 	public void highVolumeGetRewards() {
 		RestTemplate restTemplate = new RestTemplate();
@@ -93,7 +93,7 @@ public class TestPerformance {
 		TestUserRepository testUserRepository = new TestUserRepository();
 
 		// Users should be incremented up to 100,000, and test finishes within 20 minutes
-		InternalTestHelper.setInternalUserNumber(10000);
+		InternalTestHelper.setInternalUserNumber(100000);
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		TourGuideService tourGuideService = new TourGuideService(rewardsService, testUserRepository, restTemplate);
@@ -104,6 +104,14 @@ public class TestPerformance {
 		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
 		allUsers.forEach(u -> rewardsService.calculateRewards(u));
+
+//		ForkJoinPool forkJoinPool = new ForkJoinPool(100);
+//		allUsers.forEach(u -> {
+//			CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
+//					.thenAccept(v -> rewardsService.calculateRewards(u));
+//		});
+
+//		forkJoinPool.awaitQuiescence(20,TimeUnit.MINUTES);
 
 		for(User user : allUsers) {
 			assertTrue(user.getUserRewards().size() > 0);
