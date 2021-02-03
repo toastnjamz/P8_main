@@ -12,3 +12,6 @@ The application is divided into three microservices for the following tasks:
 1. https://github.com/toastnjamz/P8_main: manages user data and sends requests to the other microservices
 2. https://github.com/toastnjamz/P8_location_service: manages location and attraction-related data
 3. https://github.com/toastnjamz/P8_rewards_service: handles trip pricing and rewards functionality
+
+## Architectural Overview
+![](Project%8%Architecture%Diagram.png)
