@@ -14,4 +14,4 @@ The application is divided into three microservices for the following tasks:
 3. https://github.com/toastnjamz/P8_rewards_service: handles trip pricing and rewards functionality
 
 ## Architectural Overview
-![](Project8ArchitectureDiagram.png)
+![](Project8ArchitectureDiagramUpdated.png)
