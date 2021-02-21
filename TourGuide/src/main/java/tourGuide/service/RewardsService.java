@@ -3,6 +3,7 @@ package tourGuide.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import tourGuide.domain.location.Attraction;
@@ -13,6 +14,8 @@ import tourGuide.domain.user.User;
 import tourGuide.domain.user.UserReward;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class RewardsService {
@@ -40,7 +43,9 @@ public class RewardsService {
 		proximityBuffer = defaultProximityBuffer;
 	}
 
-	//Optimized with foreach
+	// Optimized with foreach
+	// Execute in a separate thread - caller shouldn't wait for the completion of the called method
+	@Async
 	public void calculateRewards(User user) {
 		List<VisitedLocation> userLocations = user.getVisitedLocations();
 		List<Attraction> attractions;
@@ -65,6 +70,13 @@ public class RewardsService {
 		int rewardsPoints = requestResult;
 		return rewardsPoints;
 	}
+
+//	@Async
+//	public CompletableFuture<Integer> getRewardPoints(Attraction attraction, User user) {
+//		String uri = "http://localhost:8083/reward-points?attractionId=" + attraction.attractionId +  "&userId=" + user.getUserId();
+//		Integer requestResult = restTemplate.getForObject(uri, Integer.class);
+//		return CompletableFuture.completedFuture(requestResult);
+//	}
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;

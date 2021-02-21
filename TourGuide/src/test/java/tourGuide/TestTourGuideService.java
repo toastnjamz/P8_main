@@ -17,6 +17,7 @@ import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
 
@@ -106,7 +107,7 @@ public class TestTourGuideService {
 	}
 
 	@Test
-	public void getUserLocation_userExists_visitedLocationReturned() {
+	public void getUserLocation_userExists_visitedLocationReturned() throws ExecutionException, InterruptedException {
 		// arrange
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 		tourGuideService.addUser(user);
@@ -155,7 +156,7 @@ public class TestTourGuideService {
 	}
 
 	@Test
-	public void trackUser() {
+	public void trackUser() throws ExecutionException, InterruptedException {
 		// arrange
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
