@@ -15,4 +15,4 @@ The application is divided into three microservices for the following tasks:
 4. https://github.com/toastnjamz/P8_pricer_service: handles trip pricing functionality
 
 ## Architectural Overview
-![](Project8ArchitectureDiagramUpdated.png)
+![](Project8ArchitectureDiagram.png)
