@@ -16,3 +16,6 @@ The application is divided into three microservices for the following tasks:
 
 ## Architectural Overview
 ![](Project8ArchitectureDiagram.png)
+
+## Class Diagram
+![](Project8ClassDiagram.png)
