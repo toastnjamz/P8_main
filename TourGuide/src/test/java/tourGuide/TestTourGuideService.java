@@ -156,7 +156,7 @@ public class TestTourGuideService {
 	}
 
 	@Test
-	public void trackUser() throws ExecutionException, InterruptedException {
+	public void trackUserLocation_userExists_visitedLocationMatches() {
 		// arrange
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
@@ -166,6 +166,20 @@ public class TestTourGuideService {
 		// assert
 		assertEquals(user.getUserId(), visitedLocation.userId);
 	}
+
+//	@Test
+//	public void trackUserLocationConcurrent_userListValid_visitedLocationMatches() throws ExecutionException, InterruptedException {
+//		// arrange
+//		List<User> userList =
+//		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+//		userList.add(user);
+//
+//		// act
+//		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
+//
+//		// assert
+//		assertEquals(user.getUserId(), visitedLocation.userId);
+//	}
 
 	@Test
 	public void getUserRewards_usersExistsNoRewards_emptyRewardsListReturned() {

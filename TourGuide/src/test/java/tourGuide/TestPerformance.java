@@ -41,8 +41,6 @@ public class TestPerformance {
 	 *          assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
-//	int processors = Runtime.getRuntime().availableProcessors();
-
 //	@Ignore
 	@Test
 	public void highVolumeTrackLocation() throws ExecutionException, InterruptedException {
@@ -55,29 +53,23 @@ public class TestPerformance {
 		TourGuideService tourGuideService = new TourGuideService(rewardsService, testUserRepository, restTemplate);
 
 		List<User> allUsers = tourGuideService.getAllUsers();
+		ExecutorService executorService = Executors.newFixedThreadPool(32);
 
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 
-		for(User user : allUsers) {
-			tourGuideService.trackUserLocation(user);
+		// Run just trackUserLocation functionality for each user in allUsers on a concurrent thread
+		for (User user : allUsers) {
+			Runnable runnable = () -> {
+				VisitedLocation visitedLocation;
+				String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
+				visitedLocation = restTemplate.getForObject(requestURI, VisitedLocation.class);
+				user.addToVisitedLocations(visitedLocation);
+			};
+			executorService.execute(runnable);
 		}
-
-//		ExecutorService executorService = Executors.newFixedThreadPool(100);
-//
-//		allUsers.forEach(u -> {
-//			CompletableFuture.supplyAsync(() -> tourGuideService.trackUserLocation(u), executorService)
-//					.thenAccept(visitedLocation -> {tourGuideService.completeTrack(u, visitedLocation);});
-//				});
-
-
-//		ForkJoinPool forkJoinPool = new ForkJoinPool(100);
-//		allUsers.forEach(u -> {
-//			CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
-//					.thenAccept(v -> rewardsService.calculateRewards(u));
-//		});
-//
-//		forkJoinPool.awaitQuiescence(15,TimeUnit.MINUTES);
+		executorService.shutdown();
+		executorService.awaitTermination(15, TimeUnit.MINUTES);
 
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
@@ -94,31 +86,36 @@ public class TestPerformance {
 		TestUserRepository testUserRepository = new TestUserRepository();
 
 		// Users should be incremented up to 100,000, and test finishes within 20 minutes
-		InternalTestHelper.setInternalUserNumber(100000);
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
+		InternalTestHelper.setInternalUserNumber(100);
 		TourGuideService tourGuideService = new TourGuideService(rewardsService, testUserRepository, restTemplate);
+		tourGuideService.tracker.stopTracking();
 
-		//Subbing in the first Attraction in the list of attractions
+		// Subbing in the first Attraction in the list of attractions
 		Attraction attraction = new Attraction("Disneyland", "Anaheim", "CA", 33.817595D, -117.922008D);
 		List<User> allUsers = tourGuideService.getAllUsers();
 
-		allUsers.forEach(u -> rewardsService.calculateRewards(u));
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
 
-//		ForkJoinPool forkJoinPool = new ForkJoinPool(100);
-//		allUsers.forEach((u -> {
-//			u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date()));
-//			CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
-//					.thenAccept(v -> rewardsService.calculateRewards(u));
-//		}));
-//
-//		forkJoinPool.awaitQuiescence(20,TimeUnit.MINUTES);
+		ExecutorService executorService = Executors.newFixedThreadPool(32);
 
-		for(User user : allUsers) {
-			assertTrue(user.getUserRewards().size() > 0);
+		try {
+			// Run just calculateRewards functionality for each user in allUsers on a concurrent thread
+			allUsers.forEach((user) -> {
+				Runnable runnable = () -> {
+					user.addToVisitedLocations(new VisitedLocation(user.getUserId(), attraction, new Date()));
+					rewardsService.calculateRewards(user);
+					assertTrue(user.getUserRewards().size() > 0);
+				};
+				executorService.execute(runnable);
+			});
+			executorService.shutdown();
+			executorService.awaitTermination(20, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+
 		stopWatch.stop();
-		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
 		assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));

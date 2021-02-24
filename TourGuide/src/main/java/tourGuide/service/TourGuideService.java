@@ -3,7 +3,6 @@ package tourGuide.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import tourGuide.domain.location.*;
@@ -16,7 +15,6 @@ import tourGuide.repository.TestUserRepository;
 import tourGuide.tracker.Tracker;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,7 +32,7 @@ public class TourGuideService {
 
 	private int numberOfClosestAttractions = 5;
 
-	private ExecutorService executorService = Executors.newFixedThreadPool(16);
+	private ExecutorService executorService = Executors.newFixedThreadPool(72);
 
 	@Autowired
 	public TourGuideService(RewardsService rewardsService, TestUserRepository testUserRepository, RestTemplate restTemplate) {
@@ -82,78 +80,25 @@ public class TourGuideService {
 		return allUsersLocations;
 	}
 
-//	public VisitedLocation trackUserLocation(User user) {
-//		VisitedLocation visitedLocation = new VisitedLocation();
-//		String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
-//
-//		visitedLocation = restTemplate.getForObject(requestURI, VisitedLocation.class);
-//		user.addToVisitedLocations(visitedLocation);
-//
-//		rewardsService.calculateRewards(user);
-//		return visitedLocation;
-//	}
-
-//	public VisitedLocation trackUserLocation(User user) throws ExecutionException, InterruptedException {
-//		String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
-//		ExecutorService executorService = Executors.newFixedThreadPool(16);
-//
-//		CompletableFuture<VisitedLocation> completableFuture = CompletableFuture.supplyAsync(() -> {
-//			return restTemplate.getForObject(requestURI, VisitedLocation.class);
-//		}, executorService)
-//				.thenApplyAsync(visitedLocation -> {
-//					completeTrack(user, visitedLocation);
-//					return visitedLocation;
-//				});
-//		return completableFuture.get();
-//	}
-//
-//	public void completeTrack(User user, VisitedLocation visitedLocation)  {
-//		user.addToVisitedLocations(visitedLocation);
-//		rewardsService.calculateRewards(user);
-//	}
-
-	public VisitedLocation trackUserLocation(User user) throws ExecutionException, InterruptedException {
+	public VisitedLocation trackUserLocation(User user) {
+		VisitedLocation visitedLocation = new VisitedLocation();
 		String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
-		ExecutorService executorService = Executors.newFixedThreadPool(100);
 
-		CompletableFuture<VisitedLocation> completableFuture = CompletableFuture.supplyAsync(() -> {
-			return restTemplate.getForObject(requestURI, VisitedLocation.class);
-		}, executorService)
-				.thenApplyAsync(visitedLocation -> {
-					completeTrack(user, visitedLocation);
-					return visitedLocation;
-				});
-		return completableFuture.get();
-	}
-
-	// Execute in a separate thread - caller shouldn't wait for the completion of the called method
-	@Async
-	public void completeTrack(User user, VisitedLocation visitedLocation)  {
+		visitedLocation = restTemplate.getForObject(requestURI, VisitedLocation.class);
 		user.addToVisitedLocations(visitedLocation);
 		rewardsService.calculateRewards(user);
+		return visitedLocation;
 	}
 
-//	@Async
-//	public CompletableFuture<?> trackUserLocation(User user) throws ExecutionException, InterruptedException {
-//		String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
-//
-//		return CompletableFuture.supplyAsync(() -> {
-//			return restTemplate.getForObject(requestURI, VisitedLocation.class);
-//		}, executorService)
-//				.thenAccept(visitedLocation -> {
-//					user.addToVisitedLocations(visitedLocation);
-//				}).thenRunAsync(rewardsService.calculateRewards(user));
-//	}
-
-//	@Async
-//	public CompletableFuture<?> calculateUserRewardsAsync(User user) {
-//		return CompletableFuture.supplyAsync(() -> {
-//			return rewardsService.calculateRewards(user);
-//		}, executorService)
-//				.thenAccept(u -> {
-//					u.stream().forEach(reward -> user.addUserReward(reward));
-//				});
-//	}
+	// Execute trackUserLocation for each user in userList on a concurrent thread
+	public void trackUserLocationConcurrent(List<User> userList) throws InterruptedException {
+		for (User user : userList) {
+			Runnable runnable = () -> {
+				trackUserLocation(user);
+			};
+			executorService.execute(runnable);
+		}
+	}
 
 	public List<UserReward> getUserRewards(User user) {
 		return user.getUserRewards();

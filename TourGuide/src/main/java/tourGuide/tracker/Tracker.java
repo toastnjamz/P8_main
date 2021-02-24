@@ -19,8 +19,6 @@ public class Tracker extends Thread {
 	private final RewardsService rewardsService;
 	private boolean stop = false;
 
-//	int processors = Runtime.getRuntime().availableProcessors();
-
 	public Tracker(TourGuideService tourGuideService, RewardsService rewardsService) {
 		this.tourGuideService = tourGuideService;
 		this.rewardsService = rewardsService;
@@ -49,30 +47,11 @@ public class Tracker extends Thread {
 			logger.debug("Begin Tracker. Tracking " + users.size() + " users.");
 			stopWatch.start();
 
-			users.forEach(u -> {
-				try {
-					tourGuideService.trackUserLocation(u);
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			});
-
-//			ExecutorService executorService = Executors.newFixedThreadPool(100);
-//
-//			users.forEach(u -> {
-//				CompletableFuture.supplyAsync(() -> tourGuideService.trackUserLocation(u), executorService)
-//						.thenAccept(visitedLocation -> {rewardsService.calculateRewards(u);});
-//			});
-
-
-//			ForkJoinPool forkJoinPool = new ForkJoinPool(100);
-//
-//			users.forEach(u -> {
-//				CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(u), forkJoinPool)
-//						.thenAccept(r -> rewardsService.calculateRewards(u));
-//			});
+			try {
+				tourGuideService.trackUserLocationConcurrent(users);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			stopWatch.stop();
 			logger.debug("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
