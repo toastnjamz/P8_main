@@ -1,4 +1,4 @@
-package tourGuide;
+package tourGuide.service;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -167,19 +167,21 @@ public class TestTourGuideService {
 		assertEquals(user.getUserId(), visitedLocation.userId);
 	}
 
-//	@Test
-//	public void trackUserLocationConcurrent_userListValid_visitedLocationMatches() throws ExecutionException, InterruptedException {
-//		// arrange
-//		List<User> userList =
-//		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-//		userList.add(user);
-//
-//		// act
-//		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
-//
-//		// assert
-//		assertEquals(user.getUserId(), visitedLocation.userId);
-//	}
+	@Test
+	public void trackUserLocationConcurrent_userListValid_vistedLocationMatches() throws ExecutionException, InterruptedException {
+		// arrange
+		List<User> userList = new ArrayList<>();
+		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+		userList.add(user);
+
+		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
+
+		// act
+		tourGuideService.trackUserLocationConcurrent(userList);
+
+		// assert
+		assertEquals(user.getUserId(), visitedLocation.userId);
+	}
 
 	@Test
 	public void getUserRewards_usersExistsNoRewards_emptyRewardsListReturned() {
@@ -194,7 +196,7 @@ public class TestTourGuideService {
 		assertEquals(rewardsList.size(), 0);
 	}
 
-	public void getTripDeals() {
+	public void getTripDeals_userExists_tripDealsReturned() {
 		// arrange
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
@@ -206,7 +208,7 @@ public class TestTourGuideService {
 	}
 
 	@Test
-	public void getNearbyAttractions() {
+	public void getNearbyAttractions_nearbyAttractionsExist_attractionsReturned() {
 		// arrange
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 		VisitedLocation visitedLocation = new VisitedLocation(user.getUserId(), new Location(33.817595D, -117.922008D), new Date());
