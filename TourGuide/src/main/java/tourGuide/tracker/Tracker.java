@@ -47,10 +47,16 @@ public class Tracker extends Thread {
 			logger.debug("Begin Tracker. Tracking " + users.size() + " users.");
 			stopWatch.start();
 
-			try {
-				tourGuideService.trackUserLocationConcurrent(users);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			// Execute trackUserLocation for each user in users on a concurrent thread
+			for (User user : users) {
+				Runnable runnable = () -> {
+					try {
+						tourGuideService.trackUserLocation(user);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				};
+				executorService.execute(runnable);
 			}
 
 			stopWatch.stop();

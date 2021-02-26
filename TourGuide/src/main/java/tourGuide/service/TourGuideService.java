@@ -16,8 +16,6 @@ import tourGuide.tracker.Tracker;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,8 +29,6 @@ public class TourGuideService {
 	private final RestTemplate restTemplate;
 
 	private int numberOfClosestAttractions = 5;
-
-	private ExecutorService executorService = Executors.newFixedThreadPool(72);
 
 	@Autowired
 	public TourGuideService(RewardsService rewardsService, TestUserRepository testUserRepository, RestTemplate restTemplate) {
@@ -80,7 +76,7 @@ public class TourGuideService {
 		return allUsersLocations;
 	}
 
-	public VisitedLocation trackUserLocation(User user) {
+	public VisitedLocation trackUserLocation(User user) throws InterruptedException {
 		VisitedLocation visitedLocation = new VisitedLocation();
 		String requestURI = "http://localhost:8082/user-location?userId=" + user.getUserId();
 
@@ -88,16 +84,6 @@ public class TourGuideService {
 		user.addToVisitedLocations(visitedLocation);
 		rewardsService.calculateRewards(user);
 		return visitedLocation;
-	}
-
-	// Execute trackUserLocation for each user in userList on a concurrent thread
-	public void trackUserLocationConcurrent(List<User> userList) throws InterruptedException {
-		for (User user : userList) {
-			Runnable runnable = () -> {
-				trackUserLocation(user);
-			};
-			executorService.execute(runnable);
-		}
 	}
 
 	public List<UserReward> getUserRewards(User user) {

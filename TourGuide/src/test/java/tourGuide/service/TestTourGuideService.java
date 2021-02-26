@@ -156,28 +156,12 @@ public class TestTourGuideService {
 	}
 
 	@Test
-	public void trackUserLocation_userExists_visitedLocationMatches() {
+	public void trackUserLocation_userExists_visitedLocationMatches() throws InterruptedException {
 		// arrange
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
 		// act
 		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
-
-		// assert
-		assertEquals(user.getUserId(), visitedLocation.userId);
-	}
-
-	@Test
-	public void trackUserLocationConcurrent_userListValid_vistedLocationMatches() throws ExecutionException, InterruptedException {
-		// arrange
-		List<User> userList = new ArrayList<>();
-		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-		userList.add(user);
-
-		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
-
-		// act
-		tourGuideService.trackUserLocationConcurrent(userList);
 
 		// assert
 		assertEquals(user.getUserId(), visitedLocation.userId);

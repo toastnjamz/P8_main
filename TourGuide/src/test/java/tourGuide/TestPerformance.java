@@ -41,7 +41,7 @@ public class TestPerformance {
 	 *          assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
-//	@Ignore
+	@Ignore
 	@Test
 	public void highVolumeTrackLocation() throws ExecutionException, InterruptedException {
 		RestTemplate restTemplate = new RestTemplate();
@@ -49,7 +49,7 @@ public class TestPerformance {
 		TestUserRepository testUserRepository = new TestUserRepository();
 
 		// Users should be incremented up to 100,000, and test finishes within 15 minutes
-		InternalTestHelper.setInternalUserNumber(100);
+		InternalTestHelper.setInternalUserNumber(100000);
 		TourGuideService tourGuideService = new TourGuideService(rewardsService, testUserRepository, restTemplate);
 
 		List<User> allUsers = tourGuideService.getAllUsers();
@@ -78,7 +78,7 @@ public class TestPerformance {
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 
-	@Ignore
+//	@Ignore
 	@Test
 	public void highVolumeGetRewards() {
 		RestTemplate restTemplate = new RestTemplate();
@@ -86,7 +86,7 @@ public class TestPerformance {
 		TestUserRepository testUserRepository = new TestUserRepository();
 
 		// Users should be incremented up to 100,000, and test finishes within 20 minutes
-		InternalTestHelper.setInternalUserNumber(100);
+		InternalTestHelper.setInternalUserNumber(100000);
 		TourGuideService tourGuideService = new TourGuideService(rewardsService, testUserRepository, restTemplate);
 		tourGuideService.tracker.stopTracking();
 
